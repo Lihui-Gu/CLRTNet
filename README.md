@@ -1,25 +1,13 @@
-<div align="center">
-  
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/clrnet-cross-layer-refinement-network-for/lane-detection-on-culane)](https://paperswithcode.com/sota/lane-detection-on-culane?p=clrnet-cross-layer-refinement-network-for)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/clrnet-cross-layer-refinement-network-for/lane-detection-on-llamas)](https://paperswithcode.com/sota/lane-detection-on-llamas?p=clrnet-cross-layer-refinement-network-for)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/clrnet-cross-layer-refinement-network-for/lane-detection-on-tusimple)](https://paperswithcode.com/sota/lane-detection-on-tusimple?p=clrnet-cross-layer-refinement-network-for)
-</div>
-
-<div align="center">
-
-# CLRNet: Cross Layer Refinement Network for Lane Detection
-
-</div>
-
-
-
-Pytorch implementation of the paper "[CLRNet: Cross Layer Refinement Network for Lane Detection](https://arxiv.org/abs/2203.10350)" (CVPR2022 Acceptance).
-
+<!--
+ * @Author: 顾立辉 glh9803@outlook.com
+ * @Date: 2022-07-12 23:02:30
+ * @LastEditors: 顾立辉 glh9803@outlook.com
+ * @LastEditTime: 2022-07-13 22:35:34
+ * @FilePath: \undefinedc:\Users\glh98\Documents\GitHub\CLRTNet\README.md
+ * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+-->
 ## Introduction
-![Arch](.github/arch.png)
-- CLRNet exploits more contextual information to detect lanes while leveraging local detailed lane features to improve localization accuracy. 
-- CLRNet achieves SOTA result on CULane, Tusimple, and LLAMAS datasets.
-
+I investigated and summerized the curent mainstream lane detection model, improved and adjusted the model based on [CLRNet](https://github.com/Turoad/CLRNet), built a SpaceFormer with spatial attention mechanism to obtain context information, completed the construction of a new network structure CLRTNet, and test it on tusimple Dataset. The final result is very close to the accuracy level of CLRNet. 
 ## Installation
 
 ### Prerequisites
@@ -57,33 +45,7 @@ pip install torch==1.8.0 torchvision==0.9.0
 python setup.py build develop
 ```
 
-### Data preparation
-
-#### CULane
-
-Download [CULane](https://xingangpan.github.io/projects/CULane.html). Then extract them to `$CULANEROOT`. Create link to `data` directory.
-
-```Shell
-cd $CLRNET_ROOT
-mkdir -p data
-ln -s $CULANEROOT data/CULane
-```
-
-For CULane, you should have structure like this:
-```
-$CULANEROOT/driver_xx_xxframe    # data folders x6
-$CULANEROOT/laneseg_label_w16    # lane segmentation labels
-$CULANEROOT/list                 # data lists
-```
-Compile the evaluation tools:
-
-```
-cd $CLRNET_ROOT/tools/lane_evaluation
-make
-```
-
-
-#### Tusimple
+### Data preparation Tusimple
 Download [Tusimple](https://github.com/TuSimple/tusimple-benchmark/issues/3). Then extract them to `$TUSIMPLEROOT`. Create link to `data` directory.
 
 ```Shell
@@ -107,26 +69,6 @@ For Tusimple, the segmentation annotation is not provided, hence we need to gene
 python tools/generate_seg_tusimple.py --root $TUSIMPLEROOT
 # this will generate seg_label directory
 ```
-
-#### LLAMAS
-Dowload [LLAMAS](https://unsupervised-llamas.com/llamas/). Then extract them to `$LLAMASROOT`. Create link to `data` directory.
-
-```Shell
-cd $CLRNET_ROOT
-mkdir -p data
-ln -s $LLAMASROOT data/llamas
-```
-
-Unzip both files (`color_images.zip` and `labels.zip`) into the same directory (e.g., `data/llamas/`), which will be the dataset's root. For LLAMAS, you should have structure like this:
-```
-$LLAMASROOT/color_images/train # data folders
-$LLAMASROOT/color_images/test # data folders
-$LLAMASROOT/color_images/valid # data folders
-$LLAMASROOT/labels/train # labels folders
-$LLAMASROOT/labels/valid # labels folders
-```
-
-
 ## Getting Started
 
 ### Training
@@ -154,48 +96,6 @@ python main.py configs/clrnet/clr_dla34_culane.py --validate --load_from culane_
 Currently, this code can output the visualization result when testing, just add `--view`.
 We will get the visualization result in `work_dirs/xxx/xxx/visualization`.
 
+## Loss Optimization strategy
+Use dynamic weight adjust strategy, see more at `global_var.py`.
 
-## Results
-![F1 vs. Latency for SOTA methods on the lane detection](.github/latency_f1score.png)
-
-[assets]: https://github.com/turoad/CLRNet/releases
-
-### CULane
-
-|   Backbone  |  mF1 | F1@50  | F1@75 |
-| :---  |  :---:   |   :---:    | :---:|
-| [ResNet-18][assets]     | 55.23  |  79.58   | 62.21 |
-| [ResNet-34][assets]     | 55.14  |  79.73   | 62.11 |
-| [ResNet-101][assets]     | 55.55| 80.13   | 62.96 |
-| [DLA-34][assets]     | 55.64|  80.47   | 62.78 |
-
-
-
-### TuSimple
-|   Backbone   |      F1   | Acc |      FDR     |      FNR   |
-|    :---       |          ---:          |       ---:       |       ---:       |      ---:       |
-| [ResNet-18][assets]     |    97.89    |   96.84  |    2.28  |  1.92      | 
-| [ResNet-34][assets]       |   97.82              |    96.87          |   2.27          |    2.08      | 
-| [ResNet-101][assets]      |   97.62|   96.83  |   2.37   |  2.38  |
-
-
-
-### LLAMAS
-|   Backbone    |  <center>  valid <br><center> &nbsp; mF1 &nbsp; &nbsp;  &nbsp;F1@50 &nbsp; F1@75     | <center>  test <br> F1@50 |
-|  :---:  |    :---:    |        :---:|
-| [ResNet-18][assets] |  <center> 70.83  &nbsp; &nbsp; 96.93 &nbsp; &nbsp; 85.23 | 96.00 |
-| [DLA-34][assets]     |  <center> 71.57 &nbsp; &nbsp;  97.06  &nbsp; &nbsp; 85.43  |   96.12 |
-
-“F1@50” refers to the official metric, i.e., F1 score when IoU threshold is 0.5 between the gt and prediction. "F1@75" is the F1 score when IoU threshold is 0.75.
-
-## Citation
-
-If our paper and code are beneficial to your work, please consider citing:
-```
-@inproceedings{zheng2022clrnet,
-  title={CLRNet: Cross Layer Refinement Network for Lane Detection},
-  author={Zheng, Tu and Huang, Yifei and Liu, Yang and Tang, Wenjian and Yang, Zheng and Cai, Deng and He, Xiaofei},
-  booktitle={Conference on Computer Vision and Pattern Recognition (CVPR)},
-  year={2022}
-}
-```
